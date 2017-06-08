@@ -134,7 +134,7 @@ abstract class Controller {
 	}
 
 	/**
-	 * Render the view from within the controller
+	 * Render to HTML
 	 *
 	 * @param string $file    Name of the template/ view to render
 	 * @param array  $args    Additional variables to pass to the view
@@ -147,13 +147,21 @@ abstract class Controller {
 		return $view->render($this->response, $file, $args);
 	}
 
+	/**
+	 * Render to JSON
+	 *
+	 * @param array $args
+	 * @param int   $cacheTime
+	 *
+	 * @return Response
+	 */
 	protected function json(array $args = array(), $cacheTime = 30): Response {
 		$resp = new Response(200);
 		$resp
 			->withHeader("Content-Type", "application/json; charset=utf-8")
 			->withAddedHeader("Access-Control-Allow-Origin", "*")
 			->withAddedHeader("Access-Control-Allow-Methods", "*")
-			->withAddedHeader("Expires:", gmdate("D, d MY H:i:s", time() + $cacheTime) . " GMT")
+			->withAddedHeader("Expires:", gmdate("D, d M Y H:i:s", time() + $cacheTime) . " GMT")
 			->withAddedHeader("Cache-Control", "public, max-age={$cacheTime}, proxy-revalidate");
 
 		$body = new Body(fopen("php://temp", "r+"));
