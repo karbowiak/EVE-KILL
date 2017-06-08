@@ -3,7 +3,6 @@ namespace App\Lib;
 
 
 use Monolog\Logger;
-use phpDocumentor\Reflection\Types\String_;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 
 /**
@@ -144,7 +143,7 @@ class Database {
 			$this->db->rollBack();
 			return null;
 		}
-		
+
 		$rID = $returnID ? $this->db->lastInsertId() : 0;
 		$this->db->commit();
 		$rowCount = $stmt->rowCount();
