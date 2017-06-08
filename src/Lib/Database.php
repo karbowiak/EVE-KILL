@@ -2,6 +2,7 @@
 namespace App\Lib;
 
 
+use App\Helper\Timer;
 use Monolog\Logger;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 
@@ -22,6 +23,10 @@ class Database {
 	 * @var \PDO
 	 */
 	protected $db;
+	/**
+	 * @var int
+	 */
+	public $timeout = 10;
 
 	/**
 	 * Database constructor.
@@ -75,6 +80,7 @@ class Database {
 		}
 
 		try {
+			$timer = new Timer();
 			$stmt = $this->db->prepare($query);
 			$stmt->execute($parameters);
 
@@ -83,6 +89,9 @@ class Database {
 
 			$result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 			$stmt->closeCursor();
+
+			if($timer->stop() > $this->timeout)
+				$this->log->critical("Query taking exceedingly long time: {$query}", $parameters);
 
 			if($cacheTime > 0) {
 				$cacheData = $this->cache->getItem($key);

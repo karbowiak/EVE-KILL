@@ -36,6 +36,15 @@ $container['logger'] = function ($c) {
 };
 
 /**
+ * @param $c
+ *
+ * @return \App\Middleware\ErrorLogger
+ */
+$container["errorHandler"] = function($c) {
+	return new \App\Middleware\ErrorLogger($c->get("logger"));
+};
+
+/**
  * Symfony Cache
  *
  * @param $c
