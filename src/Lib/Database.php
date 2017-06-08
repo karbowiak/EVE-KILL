@@ -62,7 +62,39 @@ class Database {
 	 * @return array|null
 	 */
 	public function query(string $query, array $parameters = array(), int $cacheTime = 30): ?array {
+		// Sanity check
+		if(strpos($query, ";") !== false)
+			throw new \Exception("Semicolons are not allowed in regular queries. Use parameters instead");
 
+		// Cache key
+		$key = $this->getCacheKey($query, $parameters);
+
+		// Check the cache
+		if($cacheTime > 0) {
+			if($this->cache->hasItem($key))
+				return $this->cache->getItem($key);
+		}
+
+		try {
+			$stmt = $this->db->prepare($query);
+			$stmt->execute($parameters);
+
+			if($stmt->errorCode() != 0)
+				return null;
+
+			$result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+			$stmt->closeCursor();
+
+			if($cacheTime > 0) {
+				$cacheData = $this->cache->getItem($key);
+				$cacheData->set($result);
+				$this->cache->save($cacheData);
+			}
+
+			return $result;
+		} catch(\Exception $e) {
+			throw new \Exception($e->getMessage());
+		}
 	}
 
 	/**
@@ -73,7 +105,13 @@ class Database {
 	 * @return array|null
 	 */
 	public function queryRow(string $query, array $parameters = array(), int $cacheTime = 30): ?array {
+		$result = $this->query($query, $parameters, $cacheTime);
 
+		if(count($result) >= 1) {
+			return $result[0];
+		}
+
+		return array();
 	}
 
 	/**
@@ -85,7 +123,11 @@ class Database {
 	 * @return null|string
 	 */
 	public function queryField(string $query, string $field, array $parameters = array(), int $cacheTime = 30): ?string {
+		$result = $this->query($query, $parameters, $cacheTime);
+		if(count($result) == 0)
+			return null;
 
+		return $result[0][$field];
 	}
 
 	/**
@@ -93,7 +135,40 @@ class Database {
 	 * @param array  $parameters
 	 * @param bool   $returnID
 	 */
-	public function execute(string $query, array $parameters = array(), boolean $returnID = false): void {
+	public function execute(string $query, array $parameters = array(), boolean $returnID = false): ?int {
+		$this->db->beginTransaction();
+		$stmt = $this->db->prepare($query);
+		$stmt->execute($parameters);
 
+		if($stmt->errorCode() != 0) {
+			$this->db->rollBack();
+			return null;
+		}
+		
+		$rID = $returnID ? $this->db->lastInsertId() : 0;
+		$this->db->commit();
+		$rowCount = $stmt->rowCount();
+		$stmt->closeCursor();
+
+		if($returnID)
+			return $rID;
+		return $rowCount;
+
+	}
+
+	/**
+	 * Generate a cache key for the query
+	 *
+	 * @param string $query
+	 * @param array  $parameters
+	 *
+	 * @return string
+	 */
+	private function getCacheKey(string $query, array $parameters = array()): string {
+		foreach($parameters as $key => $value) {
+			$query .= "|{$key}|{$value}";
+		}
+
+		return "Db:" . sha1($query);
 	}
 }
