@@ -5,3 +5,4 @@ settings.php
 cache/*
 composer.phar
 .idea
+phinx.yml
