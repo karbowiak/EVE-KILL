@@ -135,7 +135,7 @@ class Database {
 	 * @param array  $parameters
 	 * @param bool   $returnID
 	 */
-	public function execute(string $query, array $parameters = array(), boolean $returnID = false): ?int {
+	public function execute(string $query, array $parameters = array(), bool $returnID = false): ?int {
 		$this->db->beginTransaction();
 		$stmt = $this->db->prepare($query);
 		$stmt->execute($parameters);

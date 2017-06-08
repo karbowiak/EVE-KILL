@@ -57,8 +57,9 @@ $container["cache"] = function ($c) {
 $container["dbAsync"] = function($c) {
 	$settings = $c->get("settings")["database"];
 	$cache = $c->get("cache");
+	$log = $c->get("logger");
 
-	return new \App\Lib\DatabaseAsync($cache, $settings);
+	return new \App\Lib\DatabaseAsync($cache, $settings, $log);
 };
 
 /**
@@ -67,5 +68,8 @@ $container["dbAsync"] = function($c) {
  * @return \App\Lib\Database
  */
 $container["db"] = function ($c) {
-	return new \App\Lib\Database();
+	$settings = $c->get("settings")["database"];
+	$cache = $c->get("cache");
+	$log = $c->get("logger");
+	return new \App\Lib\Database($cache, $settings, $log);
 };
