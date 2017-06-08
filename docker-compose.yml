@@ -4,6 +4,11 @@ volumes:
     logs:
         driver: local
 
+web:
+    links:
+      - slim:mysql
+      - slim:redis
+
 services:
     slim:
         image: php:7.1
