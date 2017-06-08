@@ -2,10 +2,8 @@
 
 namespace App\Controller;
 
-use App\Lib\DatabaseAsync;
 use App\Middleware\Controller;
 use Slim\Http\Response;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 class IndexController extends Controller {
 

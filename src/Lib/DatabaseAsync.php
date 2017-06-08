@@ -4,19 +4,46 @@ namespace App\Lib;
 
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 
+/**
+ * Class DatabaseAsync
+ * @package App\Lib
+ */
 class DatabaseAsync {
+	/**
+	 * @var int
+	 */
 	public $timeout = 10;
+	/**
+	 * @var array
+	 */
 	protected $credentials = array();
+	/**
+	 * @var array
+	 */
 	protected $connections = array();
+	/**
+	 * @var AdapterInterface
+	 */
 	protected $cache;
 
+	/**
+	 * DatabaseAsync constructor.
+	 *
+	 * @param AdapterInterface $cache
+	 * @param array            $settings
+	 */
 	public function __construct(AdapterInterface $cache, array $settings) {
 		$this->cache = $cache;
 		$this->settings = $settings;
 	}
 
+	/**
+	 *
+	 */
 	public function __destruct() {
-
+		foreach($this->connections as $connection) {
+			$connection->close();
+		}
 	}
 
 	/**
@@ -31,6 +58,13 @@ class DatabaseAsync {
 		return $connection;
 	}
 
+	/**
+	 * @param string $name
+	 * @param string $query
+	 * @param array  $parameters
+	 *
+	 * @return bool
+	 */
 	public function executeQuery(string $name, string $query, array $parameters = array()): bool {
 		$db = $this->initDatabase($name);
 
@@ -41,6 +75,11 @@ class DatabaseAsync {
 		return $db->query($query, MYSQLI_ASYNC);
 	}
 
+	/**
+	 * @param string $name
+	 *
+	 * @return array|null
+	 */
 	public function getQuery(string $name): ?array {
 		if(!isset($this->connections[$name]))
 			return null;

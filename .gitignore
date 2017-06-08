@@ -3,3 +3,5 @@
 !/logs/README.md
 settings.php
 cache/*
+composer.phar
+.idea

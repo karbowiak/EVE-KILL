@@ -1,6 +1,8 @@
 <?php
 namespace App\Middleware;
 
+use App\Lib\Database;
+use App\Lib\DatabaseAsync;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\UriInterface;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -28,8 +30,17 @@ abstract class Controller
 	 * @var ContainerInterface
 	 */
 	protected $container;
+	/**
+	 * @var AbstractAdapter
+	 */
 	protected $cache;
+	/**
+	 * @var Database
+	 */
 	protected $db;
+	/**
+	 * @var DatabaseAsync
+	 */
 	protected $dbAsync;
 
 	/**
