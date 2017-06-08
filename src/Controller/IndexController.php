@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Controller;
+
+use App\Lib\DatabaseAsync;
+use App\Middleware\Controller;
+use Slim\Http\Response;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+
+class IndexController extends Controller {
+
+	/**
+	 * @param array $name
+	 *
+	 * @return Response
+	 */
+	public function index(array $name = array()): Response {
+		var_dump($this->dbAsync->executeQuery("select", "SELECT * FROM account_api_key_info_characters"));
+		var_dump($this->dbAsync->getQuery("select"));
+		return $this->render("home.twig", $name);
+	}
+}
