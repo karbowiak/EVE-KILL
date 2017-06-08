@@ -2,6 +2,7 @@
 namespace App\Lib;
 
 
+use Monolog\Logger;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 /**
@@ -25,6 +26,10 @@ class DatabaseAsync {
 	 * @var AdapterInterface
 	 */
 	protected $cache;
+	/**
+	 * @var Logger
+	 */
+	protected $log;
 
 	/**
 	 * DatabaseAsync constructor.
@@ -32,9 +37,10 @@ class DatabaseAsync {
 	 * @param AdapterInterface $cache
 	 * @param array            $settings
 	 */
-	public function __construct(AdapterInterface $cache, array $settings) {
+	public function __construct(AdapterInterface $cache, array $settings, Logger $log) {
 		$this->cache = $cache;
 		$this->settings = $settings;
+		$this->log = $log;
 	}
 
 	/**
