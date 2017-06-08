@@ -71,7 +71,7 @@ class Database {
 		// Check the cache
 		if($cacheTime > 0) {
 			if($this->cache->hasItem($key))
-				return $this->cache->getItem($key);
+				return $this->cache->getItem($key)->get();
 		}
 
 		try {
@@ -87,6 +87,7 @@ class Database {
 			if($cacheTime > 0) {
 				$cacheData = $this->cache->getItem($key);
 				$cacheData->set($result);
+				$cacheData->expiresAfter($cacheTime);
 				$this->cache->save($cacheData);
 			}
 
