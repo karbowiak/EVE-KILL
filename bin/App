@@ -38,4 +38,15 @@ foreach($tasks as $task) {
         $cli->add(new $import());
     }
 }
+
+// Phinx
+$cli->addCommands(array(
+	new \Phinx\Console\Command\Init(),
+	new \Phinx\Console\Command\Create(),
+	new \Phinx\Console\Command\Migrate(),
+	new \Phinx\Console\Command\Rollback(),
+	new \Phinx\Console\Command\Status(),
+	new \Phinx\Console\Command\Test()
+));
+
 $cli->run();

@@ -18,7 +18,8 @@
         "monolog/monolog": "^1.17",
         "nullx27/esi-php": "^1.0",
         "symfony/cache": "^3.3.0",
-        "symfony/console": "^3.3.0"
+        "symfony/console": "^3.3.0",
+        "robmorgan/phinx": "^0.8.1"
     },
     "require-dev": {
         "phpunit/phpunit": ">=4.8 < 6.0"
