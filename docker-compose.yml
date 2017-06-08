@@ -1,13 +1,8 @@
-version: '2'
+version: "2"
 
 volumes:
     logs:
         driver: local
-
-web:
-    links:
-      - slim:mysql
-      - slim:redis
 
 services:
     slim:
@@ -18,14 +13,15 @@ services:
             docker: "true"
         ports:
             - 8080:8080
+        links:
+            - mysql
+            - redis
         volumes:
             - .:/var/www
             - logs:/var/www/logs
 
     mysql:
           image: mariadb:10.2
-          ports:
-            - "3306:3306"
           environment:
             MYSQL_ROOT_PASSWORD: secret
           volumes:
@@ -33,5 +29,3 @@ services:
 
     redis:
           image: redis:3.0
-          ports:
-            - "6379:6379"
