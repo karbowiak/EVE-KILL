@@ -6,12 +6,20 @@
 
 ini_set("display_errors", 1);
 error_reporting(E_ALL);
+ini_set("memory_limit", "512M");
 
 // Change directory
 chdir(__DIR__ . "/../");
 
 // Load vendor files
 require_once(__DIR__ . "/../vendor/autoload.php");
+
+// Load the Slim App.. because, why not..
+$settings = require_once(__DIR__ . '/../src/settings.php');
+$app = new \Slim\App($settings);
+
+// Load the dependency container.
+require_once(__DIR__ . "/../src/dependencies.php");
 
 // Launch the CLI
 $cli = new \Symfony\Component\Console\Application("CLI", "0.0.1");
@@ -35,7 +43,7 @@ foreach($tasks as $task) {
         $namespace = ucfirst(str_replace("..\\src\\", "", str_replace("/", "\\", str_replace(".php", "", $file))));
         $import = "\\App\\{$namespace}";
 
-        $cli->add(new $import());
+        $cli->add(new $import($container));
     }
 }
 

@@ -82,3 +82,13 @@ $container["db"] = function ($c) {
 	$log = $c->get("logger");
 	return new \App\Lib\Database($cache, $settings, $log);
 };
+
+$container["storage"] = function($c) {
+	$db = $c->get("db");
+	return new \App\Model\Storage($db);
+};
+
+$container["curl"] = function($c) {
+	$cache = $c->get("cache");
+	return new \App\Lib\cURL($cache);
+};

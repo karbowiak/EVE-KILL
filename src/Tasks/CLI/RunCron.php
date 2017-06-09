@@ -8,6 +8,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class RunCron extends Command {
+	protected $container;
+
+	public function __construct(Container $container) {
+		parent::__construct();
+		$this->container = $container;
+	}
+
 	protected $running = array();
 	protected $jobs = array();
 
@@ -18,10 +25,8 @@ class RunCron extends Command {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
-		require_once(__DIR__ . "/../../dependencies.php");
-		/** @var Container $container */
-		$cache = $container->get("cache");
-		$log = $container->get("logger");
+		$cache = $this->container->get("cache");
+		$log = $this->container->get("logger");
 
 		$cronjobs = glob(__DIR__ . "/../Cron/*.php");
 		foreach($cronjobs as $cronjob) {
