@@ -23,11 +23,11 @@ abstract class Controller {
 	 */
 	protected $app;
 	/**
-	 * @var
+	 * @var Request
 	 */
 	protected $request;
 	/**
-	 * @var
+	 * @var Response
 	 */
 	protected $response;
 	/**
