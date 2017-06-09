@@ -11,13 +11,29 @@ namespace App\Lib;
 
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 
+/**
+ * Class cURL
+ * @package App\Lib
+ */
 class cURL {
 	protected $cache;
 
+	/**
+	 * cURL constructor.
+	 *
+	 * @param AbstractAdapter $cache
+	 */
 	public function __construct(AbstractAdapter $cache) {
 		$this->cache = $cache;
 	}
 
+	/**
+	 * @param string $url
+	 * @param int    $cacheTime
+	 * @param array  $headers
+	 *
+	 * @return mixed
+	 */
 	public function getData(string $url, int $cacheTime = 30, array $headers = array()) {
 		if($cacheTime > 0) {
 			$md5 = md5($url);
@@ -53,6 +69,11 @@ class cURL {
 		return $result;
 	}
 
+	/**
+	 * @param string $url
+	 * @param array  $postData
+	 * @param array  $headers
+	 */
 	public function postData(string $url, array $postData = array(), array $headers = array()) {
 
 	}

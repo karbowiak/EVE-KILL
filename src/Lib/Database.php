@@ -64,6 +64,7 @@ class Database {
 	 * @param int    $cacheTime
 	 *
 	 * @return array|null
+	 * @throws \Exception
 	 */
 	public function query(string $query, array $parameters = array(), int $cacheTime = 30): ?array {
 		// Sanity check
@@ -112,6 +113,7 @@ class Database {
 	 * @param int    $cacheTime
 	 *
 	 * @return array|null
+	 * @throws \Exception
 	 */
 	public function queryRow(string $query, array $parameters = array(), int $cacheTime = 30): ?array {
 		$result = $this->query($query, $parameters, $cacheTime);
@@ -130,6 +132,7 @@ class Database {
 	 * @param int    $cacheTime
 	 *
 	 * @return null|string
+	 * @throws \Exception
 	 */
 	public function queryField(string $query, string $field, array $parameters = array(), int $cacheTime = 30): ?string {
 		$result = $this->query($query, $parameters, $cacheTime);
@@ -143,6 +146,8 @@ class Database {
 	 * @param string $query
 	 * @param array  $parameters
 	 * @param bool   $returnID
+	 *
+	 * @return int|null
 	 */
 	public function execute(string $query, array $parameters = array(), bool $returnID = false): ?int {
 		$this->db->beginTransaction();

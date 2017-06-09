@@ -6,6 +6,7 @@ use App\Lib\Database;
 use App\Lib\DatabaseAsync;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\UriInterface;
+use Slim\App;
 use Slim\Http\Body;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -19,7 +20,7 @@ use Symfony\Component\Cache\Adapter\AbstractAdapter;
 abstract class Controller {
 	// Optional properties
 	/**
-	 * @var \Slim\App
+	 * @var App
 	 */
 	protected $app;
 	/**
@@ -48,9 +49,12 @@ abstract class Controller {
 	protected $dbAsync;
 
 	/**
-	 * @param \Slim\App $app
+	 * @param App $app
+	 *
+	 * @throws \Psr\Container\ContainerExceptionInterface
+	 * @throws \Psr\Container\NotFoundExceptionInterface
 	 */
-	public function __construct(\Slim\App $app) {
+	public function __construct(App $app) {
 		$this->app = $app;
 		$this->container = $app->getContainer();
 		$this->cache = $this->container->get("cache");
@@ -72,9 +76,6 @@ abstract class Controller {
 		$controller = $this;
 
 		$callable = function ($request, $response, $args) use ($app, $controller, $actionName) {
-
-			$container = $app->getContainer();
-
 			if(method_exists($controller, 'setRequest')) {
 				$controller->setRequest($request);
 			}
@@ -136,9 +137,14 @@ abstract class Controller {
 	/**
 	 * Render to HTML
 	 *
-	 * @param string $file    Name of the template/ view to render
-	 * @param array  $args    Additional variables to pass to the view
-	 * @param        Response ?
+	 * @param string $file Name of the template/ view to render
+	 * @param array  $args Additional variables to pass to the view
+	 *
+	 * @return Response
+	 * @throws \Psr\Container\ContainerExceptionInterface
+	 * @throws \Psr\Container\NotFoundExceptionInterface
+	 * @internal param $Response ?
+	 *
 	 */
 	protected function render(string $file, array $args = array()): Response {
 		/** @var Twig $view */
@@ -196,9 +202,11 @@ abstract class Controller {
 	/**
 	 * Shorthand method to get dependency from container
 	 *
-	 * @param $name
+	 * @param string $name
 	 *
-	 * @return mixed
+	 * @return mixed|string
+	 * @throws \Psr\Container\ContainerExceptionInterface
+	 * @throws \Psr\Container\NotFoundExceptionInterface
 	 */
 	protected function get(string $name): string {
 		return $this->app->getContainer()->get($name);
@@ -215,7 +223,7 @@ abstract class Controller {
 	 * @param  string|UriInterface $url    The redirect destination.
 	 * @param  int                 $status The redirect HTTP status code.
 	 *
-	 * @return self
+	 * @return Controller|Response
 	 */
 	protected function redirect(string $url, int $status = 302): Response {
 		return $this->response->withRedirect($url, $status);

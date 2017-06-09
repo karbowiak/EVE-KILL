@@ -10,6 +10,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Class UpdateCCPData
+ * @package App\Tasks
+ */
 class UpdateCCPData extends Command {
 	/**
 	 * @var Container
@@ -28,6 +32,13 @@ class UpdateCCPData extends Command {
 	 */
 	protected $db;
 
+	/**
+	 * UpdateCCPData constructor.
+	 *
+	 * @param Container $container
+	 *
+	 * @throws \Interop\Container\Exception\ContainerException
+	 */
 	public function __construct(Container $container) {
 		parent::__construct();
 		$this->container = $container;
@@ -43,6 +54,13 @@ class UpdateCCPData extends Command {
 			->addOption("force", "f", InputOption::VALUE_NONE, "Force update database tables");
 	}
 
+	/**
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 *
+	 * @return int|null|void
+	 * @throws \Exception
+	 */
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$dataURL = "https://www.fuzzwork.co.uk/dump/";
 		$fileCacheDir = __DIR__ . "/../../cache";

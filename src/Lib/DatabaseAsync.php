@@ -36,6 +36,7 @@ class DatabaseAsync {
 	 *
 	 * @param AdapterInterface $cache
 	 * @param array            $settings
+	 * @param Logger           $log
 	 */
 	public function __construct(AdapterInterface $cache, array $settings, Logger $log) {
 		$this->cache = $cache;
@@ -55,7 +56,7 @@ class DatabaseAsync {
 	/**
 	 * @param string $name
 	 *
-	 * @return \mysqli_driver
+	 * @return \mysqli|\mysqli_driver
 	 */
 	private function initDatabase(string $name): \mysqli {
 		$connection = mysqli_connect($this->settings["host"], $this->settings["user"], $this->settings["pass"], $this->settings["dbName"], $this->settings["port"]);

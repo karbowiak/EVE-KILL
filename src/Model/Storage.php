@@ -26,7 +26,8 @@ class Storage {
 	/**
 	 * @param string $key
 	 *
-	 * @return string
+	 * @return null|string
+	 * @throws \Exception
 	 */
 	public function getData(string $key): ?string {
 		return $this->db->queryField("SELECT value FROM storage WHERE `key` = :key", "value", array(":key" => $key), 0);
