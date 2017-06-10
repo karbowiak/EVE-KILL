@@ -12,17 +12,29 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Class GeneratorTask
+ * @package App\Tasks
+ */
 class GeneratorTask extends Command {
 	/**
 	 * @var Container
 	 */
 	protected $container;
 
+	/**
+	 * GeneratorTask constructor.
+	 *
+	 * @param Container $container
+	 */
 	public function __construct(Container $container) {
 		parent::__construct();
 		$this->container = $container;
 	}
 
+	/**
+	 *
+	 */
 	protected function configure() {
 		$this
 			->setName("generator")
@@ -40,6 +52,10 @@ class GeneratorTask extends Command {
 			->addOption("subdir", "s", InputOption::VALUE_OPTIONAL, "Sub directory to put file under", null);
 	}
 
+	/**
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		if($input->getOption("controller")) $this->generateController($input->getArgument("name"), $input, $output);
 		elseif($input->getOption("helper")) $this->generateHelper($input->getArgument("name"), $input, $output);
@@ -54,6 +70,11 @@ class GeneratorTask extends Command {
 			$output->writeln("<info>Please refer to --help to utilize this generator</info>");
 	}
 
+	/**
+	 * @param string          $directory
+	 * @param string          $file
+	 * @param OutputInterface $output
+	 */
 	private function fileExists(string $directory, string $file, OutputInterface $output) {
 		if(!file_exists($directory)) {
 			mkdir($directory);
@@ -65,6 +86,45 @@ class GeneratorTask extends Command {
 		}
 	}
 
+	/**
+	 * @param string $qualifiedName
+	 * @param string $name
+	 * @param string $container
+	 * @param string $inject
+	 * @param string $use
+	 */
+	private function addToDependencies(string $qualifiedName, string $name, string $container = "", string $inject = "", string $use = "") {
+		$dependencyFile = file_get_contents(__DIR__ . "/../dependencies.php");
+		$containerString = "\n\n\$container[\"{$name}\"] = function(\$c)";
+		if($use)
+			$containerString .= " use ({$use})";
+		$containerString .= " {\n";
+
+		if($container)
+			$containerString .= "\n{$container}";
+
+		$containerString .= "\treturn new {$qualifiedName}({$inject});\n};";
+
+		echo $containerString; die();
+		$dependencyFile = $dependencyFile . $containerString;
+		file_put_contents(__DIR__ . "/../dependencies.php", $dependencyFile);
+	}
+
+	/**
+	 * @param string $qualifiedName
+	 * @param string $name
+	 */
+	private function addToPHPStormMeta(string $qualifiedName, string $name) {
+		$storm = file_get_contents(__DIR__ . "/../../.phpstorm.meta.php");
+		$storm = substr($storm, 0, -13) . ",\n\t\t\t\"{$name}\" instanceof {$qualifiedName}" . substr($storm, -13);
+		file_put_contents(__DIR__ . "/../../.phpstorm.meta.php", ucfirst($storm));
+	}
+
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateController(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Controller/{$sub}/" : __DIR__ . "/../Controller/";
@@ -85,14 +145,20 @@ class GeneratorTask extends Command {
 		$output->writeln("<info>Generated a controller in </info>{$path} <info>named</info> {$file}");
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateHelper(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Helper/{$sub}/" : __DIR__ . "/../Helper/";
 		$file = ucfirst($name) . ".php";
 		$this->fileExists($path, $file, $output);
+		$qualifiedName = !empty($sub) ? "App\\Helper\\{$sub}\\" . ucfirst($name) : "App\\Helper\\" . ucfirst($name);
 
 		$class = new PhpClass();
-		$class->setQualifiedName(!empty($sub) ? "App\\Helper\\{$sub}\\" . ucfirst($name) : "App\\Helper\\" . ucfirst($name))
+		$class->setQualifiedName($qualifiedName)
 			->setMethod(PhpMethod::create("__construct")
 				->addParameter(PhpParameter::create("container")
 					->setType("Container")
@@ -107,35 +173,59 @@ class GeneratorTask extends Command {
 		$generator = new CodeFileGenerator();
 		$code = $generator->generate($class);
 
+		$this->addToDependencies($qualifiedName, strtolower($name), "", "\$app", "\$app");
+		$output->writeln("Added to dependency injector as well - remember to edit it");
+
+		$this->addToPHPStormMeta($qualifiedName, strtolower($name));
+		$output->writeln("Added to phpstorms meta - remember to verify it's all correct");
+
 		file_put_contents($path . $file, $code);
 		$output->writeln("<info>Generated a helper in </info>{$path} <info>named</info> {$file}");
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateLib(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Lib/{$sub}/" : __DIR__ . "/../Lib/";
 		$file = ucfirst($name) . ".php";
 		$this->fileExists($path, $file, $output);
+		$qualifiedName = !empty($sub) ? "App\\Lib\\{$sub}\\" . ucfirst($name) : "App\\Lib\\" . ucfirst($name);
 
 		$class = new PhpClass();
-		$class->setQualifiedName(!empty($sub) ? "App\\Lib\\{$sub}\\" . ucfirst($name) : "App\\Lib\\" . ucfirst($name))
+		$class->setQualifiedName($qualifiedName)
 			->setMethod(PhpMethod::create("__construct"));
 
 		$generator = new CodeFileGenerator();
 		$code = $generator->generate($class);
 
+		$this->addToDependencies($qualifiedName, strtolower($name), "");
+		$output->writeln("Added to dependency injector as well - remember to edit it");
+
+		$this->addToPHPStormMeta($qualifiedName, strtolower($name));
+		$output->writeln("Added to phpstorms meta - remember to verify it's all correct");
+
 		file_put_contents($path . $file, $code);
 		$output->writeln("<info>Generated a library in </info>{$path} <info>named</info> {$file}");
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateMiddleware(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Middleware/{$sub}/" : __DIR__ . "/../Middleware/";
 		$file = ucfirst($name) . ".php";
 		$this->fileExists($path, $file, $output);
+		$qualifiedName = !empty($sub) ? "App\\MiddleWare\\{$sub}\\" . ucfirst($name) : "App\\MiddleWare\\" . ucfirst($name);
 
 		$class = new PhpClass();
-		$class->setQualifiedName(!empty($sub) ? "App\\MiddleWare\\{$sub}\\" . ucfirst($name) : "App\\MiddleWare\\" . ucfirst($name))
+		$class->setQualifiedName($qualifiedName)
 			->setMethod(PhpMethod::create("__construct")
 				->addParameter(PhpParameter::create("app")
 					->setType("App")
@@ -164,6 +254,11 @@ class GeneratorTask extends Command {
 		$output->writeln("<info>Generated a helper in </info>{$path} <info>named</info> {$file}");
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateTask(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Tasks/{$sub}/" : __DIR__ . "/../Tasks/";
@@ -201,6 +296,11 @@ class GeneratorTask extends Command {
 		$output->writeln("<info>Generated a Task in </info>{$path} <info>named</info> {$file}");
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateCronjob(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Tasks/Cron/{$sub}/" : __DIR__ . "/../Tasks/Cron/";
@@ -210,6 +310,11 @@ class GeneratorTask extends Command {
 		//@todo write cronjob generator
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateResque(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Tasks/Resque/{$sub}/" : __DIR__ . "/../Tasks/Resque/";
@@ -219,6 +324,11 @@ class GeneratorTask extends Command {
 		//@todo write resque generator
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateWebSocket(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Tasks/Websocket/{$sub}/" : __DIR__ . "/../Tasks/Websocket/";
@@ -228,6 +338,11 @@ class GeneratorTask extends Command {
 		//@todo write websocket generator
 	}
 
+	/**
+	 * @param string          $name
+	 * @param InputInterface  $input
+	 * @param OutputInterface $output
+	 */
 	private function generateCLI(string $name, InputInterface $input, OutputInterface $output) {
 		$sub = $input->getOption("subdir");
 		$path = !empty($sub) ? __DIR__ . "/../Tasks/CLI/{$sub}/" : __DIR__ . "/../Tasks/CLI/";
