@@ -50,6 +50,7 @@ class ModelGenerator extends Command {
 			->addArgument("table", InputOption::VALUE_REQUIRED, "Table to generate model for")
 			->addOption("subdir", "s", InputOption::VALUE_OPTIONAL, "Sub directory under Model/ to put the model file")
 			->addOption("inserter", "i", InputOption::VALUE_OPTIONAL, "Generate an inserter function", false)
+			->addOption("updaters", "u", InputOption::VALUE_OPTIONAL, "Generate updater functions", false)
 			->addUsage("To generate a database model, first you must have the table generated and inserted into the database.\n  Then you can do: php bin/App generator:model <tableName> and it will generate and store the resulting database model.\n  -s puts it into a directory under Model/ and -i generates an inserter");
 	}
 
@@ -151,6 +152,54 @@ class ModelGenerator extends Command {
 						->setVisibility("public")
 						->setBody("return \$this->db->queryField(\"SELECT {$get["Field"]} FROM {$table} WHERE {$id} = :{$id}\", \"{$get["Field"]}\", array(\":{$id}\" => \${$id}));")
 					);
+				}
+			}
+
+			if($input->hasOption("updaters")) {
+				$output->writeln("Updaters being generated..");
+				foreach ($nameFields as $name) {
+					foreach ($tableColumns as $get) {
+						// If the fields match, skip it.. no reason to get/set allianceID where allianceID = allianceID
+						if ($get["Field"] == $name)
+							continue;
+						// Skip the id field
+						if ($get["Field"] == "id")
+							continue;
+
+						$class->setMethod(PhpMethod::create("update" . ucfirst($get["Field"]) . "By" . ucfirst($name))
+							->addParameter(PhpParameter::create($get["Field"])
+								->setType(stristr($get["Type"], "int") ? "int" : "string"))
+							->addParameter(PhpParameter::create($name)
+								->setType("string"))
+							->setVisibility("public")
+							->setBody("\$exists = \$this->db->queryField(\"SELECT {$get["Field"]} FROM {$table} WHERE {$name} = :{$name}\", \"{$get["Field"]}\", array(\":{$name}\" => \${$name}));
+if(!empty(\$exists)) {
+	\$this->db->execute(\"UPDATE {$table} SET {$get["Field"]} = :{$get["Field"]} WHERE {$name} = :{$name}\", array(\":{$name}\" => \${$name}, \":{$get["Field"]}\" => \${$get["Field"]}));
+}
+                    ")
+						);
+					}
+				}
+				foreach ($idFields as $id) {
+					foreach ($tableColumns as $get) {
+						// If the fields match, skip it.. no reason to get/set allianceID where allianceID = allianceID
+						if ($get["Field"] == $id)
+							continue;
+						// Skip the id field
+						if ($get["Field"] == "id")
+							continue;
+						$class->setMethod(PhpMethod::create("update" . ucfirst($get["Field"]) . "By" . ucfirst($id))
+							->addParameter(PhpParameter::create($get["Field"])
+								->setType(stristr($get["Type"], "int") ? "int" : "string"))
+							->addParameter(PhpParameter::create($id)
+								->setType("int"))
+							->setVisibility("public")
+							->setBody("\$exists = \$this->db->queryField(\"SELECT {$get["Field"]} FROM {$table} WHERE {$id} = :{$id}\", \"{$get["Field"]}\", array(\":{$id}\" => \${$id})); 
+if(!empty(\$exists)) {
+	\$this->db->execute(\"UPDATE {$table} SET {$get["Field"]} = :{$get["Field"]} WHERE {$id} = :{$id}\", array(\":{$id}\" => \${$id}, \":{$get["Field"]}\" => \${$get["Field"]}));
+}")
+						);
+					}
 				}
 			}
 

@@ -68,4 +68,48 @@ class factions {
 	public function insertIntoFactions(int $factionID, string $factionName, string $description) {
 		return $this->db->execute("INSERT INTO factions (factionID, factionName, description) VALUES (:factionID, :factionName, :description)", array(":factionID" => $factionID, ":factionName" => $factionName, ":description" => $description));
 	}
+
+	/**
+	 * @param string $description
+	 * @param int $factionID
+	 */
+	public function updateDescriptionByFactionID(string $description, int $factionID) {
+		$exists = $this->db->queryField("SELECT description FROM factions WHERE factionID = :factionID", "description", array(":factionID" => $factionID)); 
+		if(!empty($exists)) {
+			$this->db->execute("UPDATE factions SET description = :description WHERE factionID = :factionID", array(":factionID" => $factionID, ":description" => $description));
+		}
+	}
+
+	/**
+	 * @param string $description
+	 * @param string $factionName
+	 */
+	public function updateDescriptionByFactionName(string $description, string $factionName) {
+		$exists = $this->db->queryField("SELECT description FROM factions WHERE factionName = :factionName", "description", array(":factionName" => $factionName));
+		if(!empty($exists)) {
+			$this->db->execute("UPDATE factions SET description = :description WHERE factionName = :factionName", array(":factionName" => $factionName, ":description" => $description));
+		}
+	}
+
+	/**
+	 * @param int $factionID
+	 * @param string $factionName
+	 */
+	public function updateFactionIDByFactionName(int $factionID, string $factionName) {
+		$exists = $this->db->queryField("SELECT factionID FROM factions WHERE factionName = :factionName", "factionID", array(":factionName" => $factionName));
+		if(!empty($exists)) {
+			$this->db->execute("UPDATE factions SET factionID = :factionID WHERE factionName = :factionName", array(":factionName" => $factionName, ":factionID" => $factionID));
+		}
+	}
+
+	/**
+	 * @param string $factionName
+	 * @param int $factionID
+	 */
+	public function updateFactionNameByFactionID(string $factionName, int $factionID) {
+		$exists = $this->db->queryField("SELECT factionName FROM factions WHERE factionID = :factionID", "factionName", array(":factionID" => $factionID)); 
+		if(!empty($exists)) {
+			$this->db->execute("UPDATE factions SET factionName = :factionName WHERE factionID = :factionID", array(":factionID" => $factionID, ":factionName" => $factionName));
+		}
+	}
 }
