@@ -297,4 +297,16 @@ class characters {
 	public function getLastUpdatedByFactionID(int $factionID) {
 		return $this->db->queryField("SELECT lastUpdated FROM characters WHERE factionID = :factionID", "lastUpdated", array(":factionID" => $factionID));
 	}
+
+	/**
+	 * @param int $characterID
+	 * @param int $corporationID
+	 * @param int $allianceID
+	 * @param int $factionID
+	 * @param string $characterName
+	 * @param string $history
+	 */
+	public function insertIntoCharacters(int $characterID, int $corporationID, int $allianceID, int $factionID, string $characterName, string $history) {
+		return $this->db->execute("INSERT INTO characters (characterID, corporationID, allianceID, factionID, characterName, history) VALUES (:characterID, :corporationID, :allianceID, :factionID, :characterName, :history)", array(":characterID" => $characterID, ":corporationID" => $corporationID, ":allianceID" => $allianceID, ":factionID" => $factionID, ":characterName" => $characterName, ":history" => $history));
+	}
 }

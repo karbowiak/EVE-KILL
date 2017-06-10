@@ -59,4 +59,13 @@ class factions {
 	public function getFactionNameByFactionID(int $factionID) {
 		return $this->db->queryField("SELECT factionName FROM factions WHERE factionID = :factionID", "factionName", array(":factionID" => $factionID));
 	}
+
+	/**
+	 * @param int $factionID
+	 * @param string $factionName
+	 * @param string $description
+	 */
+	public function insertIntoFactions(int $factionID, string $factionName, string $description) {
+		return $this->db->execute("INSERT INTO factions (factionID, factionName, description) VALUES (:factionID, :factionName, :description)", array(":factionID" => $factionID, ":factionName" => $factionName, ":description" => $description));
+	}
 }

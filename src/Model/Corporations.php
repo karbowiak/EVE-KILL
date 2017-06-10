@@ -521,4 +521,20 @@ class corporations {
 	public function getMemberCountByFactionID(int $factionID) {
 		return $this->db->queryField("SELECT memberCount FROM corporations WHERE factionID = :factionID", "memberCount", array(":factionID" => $factionID));
 	}
+
+	/**
+	 * @param int $corporationID
+	 * @param int $allianceID
+	 * @param int $factionID
+	 * @param string $corporationName
+	 * @param int $ceoID
+	 * @param string $corpTicker
+	 * @param int $memberCount
+	 * @param string $description
+	 * @param string $creationDate
+	 * @param int $creatorCharacterID
+	 */
+	public function insertIntoCorporations(int $corporationID, int $allianceID, int $factionID, string $corporationName, int $ceoID, string $corpTicker, int $memberCount, string $description, string $creationDate, int $creatorCharacterID) {
+		return $this->db->execute("INSERT INTO corporations (corporationID, allianceID, factionID, corporationName, ceoID, corpTicker, memberCount, description, creationDate, creatorCharacterID) VALUES (:corporationID, :allianceID, :factionID, :corporationName, :ceoID, :corpTicker, :memberCount, :description, :creationDate, :creatorCharacterID)", array(":corporationID" => $corporationID, ":allianceID" => $allianceID, ":factionID" => $factionID, ":corporationName" => $corporationName, ":ceoID" => $ceoID, ":corpTicker" => $corpTicker, ":memberCount" => $memberCount, ":description" => $description, ":creationDate" => $creationDate, ":creatorCharacterID" => $creatorCharacterID));
+	}
 }

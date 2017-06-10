@@ -155,6 +155,7 @@ class ModelGenerator extends Command {
 			}
 
 			if($input->hasOption("inserter")) {
+				$output->writeln("Inserter being generated..");
 				$class->setMethod(PhpMethod::create("insertInto" . ucfirst($table)));
 				$fields = array();
 
@@ -188,7 +189,7 @@ class ModelGenerator extends Command {
 
 				$class->getMethod("insertInto" . ucfirst($table))
 				->setVisibility("public")
-					->setBody("return \$this->db->execute(\"INSERT INTO {$table} (" . implode(", ", $fields) . ") VALUES (:" . implode(", :", $fields) . ")\", array(" . implode(", ", $arrayList) . ")");
+					->setBody("return \$this->db->execute(\"INSERT INTO {$table} (" . implode(", ", $fields) . ") VALUES (:" . implode(", :", $fields) . ")\", array(" . implode(", ", $arrayList) . "));");
 			}
 
 			$generator = new CodeGenerator(array(
@@ -200,9 +201,7 @@ class ModelGenerator extends Command {
 
 			$code = "<?php\n" . $code;
 
-			echo $code; die();
 			file_put_contents($modelPath, $code);
-
 			$output->writeln("Model generated and stored in {$modelPath}");
 		}
 	}

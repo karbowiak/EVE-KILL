@@ -213,4 +213,15 @@ class alliances {
 	public function getLastUpdatedByFactionID(int $factionID) {
 		return $this->db->queryField("SELECT lastUpdated FROM alliances WHERE factionID = :factionID", "lastUpdated", array(":factionID" => $factionID));
 	}
+
+	/**
+	 * @param int $allianceID
+	 * @param int $factionID
+	 * @param string $allianceName
+	 * @param string $allianceTicker
+	 * @param int $executorCorporationID
+	 */
+	public function insertIntoAlliances(int $allianceID, int $factionID, string $allianceName, string $allianceTicker, int $executorCorporationID) {
+		return $this->db->execute("INSERT INTO alliances (allianceID, factionID, allianceName, allianceTicker, executorCorporationID) VALUES (:allianceID, :factionID, :allianceName, :allianceTicker, :executorCorporationID)", array(":allianceID" => $allianceID, ":factionID" => $factionID, ":allianceName" => $allianceName, ":allianceTicker" => $allianceTicker, ":executorCorporationID" => $executorCorporationID));
+	}
 }
