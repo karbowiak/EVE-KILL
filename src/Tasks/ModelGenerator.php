@@ -252,8 +252,19 @@ if(!empty(\$exists)) {
 
 			$code = "<?php\n" . $code;
 
-			file_put_contents($modelPath, $code);
+			//file_put_contents($modelPath, $code);
 			$output->writeln("Model generated and stored in {$modelPath}");
+
+			// Update dependencies to load the model..
+			$dep = file_get_contents(__DIR__ . "/../dependencies.php");
+
+			$containerString = "\n\n\$container[\"{$table}\"] = function(\$c) {
+	return new {$qualifiedName}(\$c);
+};";
+			$dep = $dep . $containerString;
+			file_put_contents(__DIR__ . "/../dependencies.php", $dep);
+			// @todo move dependencies into individual loadable files, so we can actually check if there is a dependency loader for a model already in existance.
+			$output->writeln("Dependencies updated (Remember if you regenerate this model by force - you must fix dependencies.php as well!");
 		}
 	}
 }
