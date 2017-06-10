@@ -2,7 +2,7 @@
 namespace App\Model\Parser;
 
 
-class KillmailParser {
+class Parser {
 
 	/*
 	 * entry file here..
