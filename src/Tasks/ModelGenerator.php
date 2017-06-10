@@ -48,7 +48,9 @@ class ModelGenerator extends Command {
 			->setName("generator:model")
 			->setDescription("Generates a model from a database table")
 			->addArgument("table", InputOption::VALUE_REQUIRED, "Table to generate model for")
-			->addOption("subdir", "s", InputOption::VALUE_OPTIONAL, "Sub directory under Model/ to put the model file");
+			->addOption("subdir", "s", InputOption::VALUE_OPTIONAL, "Sub directory under Model/ to put the model file")
+			->addOption("inserter", "i", InputOption::VALUE_OPTIONAL, "Generate an inserter function", false)
+			->addUsage("To generate a database model, first you must have the table generated and inserted into the database.\n  Then you can do: php bin/App generator:model <tableName> and it will generate and store the resulting database model.\n  -s puts it into a directory under Model/ and -i generates an inserter");
 	}
 
 	/**
@@ -61,6 +63,7 @@ class ModelGenerator extends Command {
 		if(!empty($input->getArgument("table"))) {
 			$table = $input->getArgument("table");
 			$sub = $input->getOption("subdir");
+
 			$output->writeln("<info>Generating table model for: </info> {$table}");
 
 			if(!empty($sub))
@@ -151,6 +154,43 @@ class ModelGenerator extends Command {
 				}
 			}
 
+			if($input->hasOption("inserter")) {
+				$class->setMethod(PhpMethod::create("insertInto" . ucfirst($table)));
+				$fields = array();
+
+				foreach($tableColumns as $column) {
+					$t = explode("(", $column["Type"]);
+					$type = "string";
+					switch($t[0]) {
+						case "int":
+							$type = "int";
+							break;
+						case "varchar":
+							$type = "string";
+							break;
+						case "mediumtext":
+							$type = "string";
+							break;
+					}
+					if($column["Extra"] == "auto_increment")
+						continue;
+					if(in_array($column["Field"], array("dateAdded", "lastUpdated", "id")))
+						continue;
+
+					$fields[] = $column["Field"];
+					$class->getMethod("insertInto" . ucfirst($table))
+						->addParameter(PhpParameter::create(lcfirst($column["Field"]))
+							->setType($type));
+				}
+				$arrayList = array();
+				foreach($fields as $field)
+					$arrayList[] = "\":{$field}\" => \${$field}";
+
+				$class->getMethod("insertInto" . ucfirst($table))
+				->setVisibility("public")
+					->setBody("return \$this->db->execute(\"INSERT INTO {$table} (" . implode(", ", $fields) . ") VALUES (:" . implode(", :", $fields) . ")\", array(" . implode(", ", $arrayList) . ")");
+			}
+
 			$generator = new CodeGenerator(array(
 				"generateScalarTypeHints" => true,
 				"generateReturnTypeHints" => true,
@@ -159,6 +199,8 @@ class ModelGenerator extends Command {
 			$code = $generator->generate($class);
 
 			$code = "<?php\n" . $code;
+
+			echo $code; die();
 			file_put_contents($modelPath, $code);
 
 			$output->writeln("Model generated and stored in {$modelPath}");
