@@ -72,8 +72,8 @@ class ModelGenerator extends Command {
 				$modelPath = __DIR__ . "/../Model/{$sub}/" . ucfirst($table) . ".php";
 			else
 				$modelPath = __DIR__ . "/../Model/" . ucfirst($table) . ".php";
-			//if(file_exists($modelPath))
-			//	return $output->writeln("<error>Error, file already exists</error>");
+			if(file_exists($modelPath))
+				return $output->writeln("<error>Error, file already exists</error>");
 
 			$tableColumns = $this->db->query("SHOW COLUMNS FROM {$table}");
 
@@ -252,7 +252,7 @@ if(!empty(\$exists)) {
 
 			$code = "<?php\n" . $code;
 
-			//file_put_contents($modelPath, $code);
+			file_put_contents($modelPath, $code);
 			$output->writeln("Model generated and stored in {$modelPath}");
 
 			// Update dependencies to load the model..
@@ -265,6 +265,13 @@ if(!empty(\$exists)) {
 			file_put_contents(__DIR__ . "/../dependencies.php", $dep);
 			// @todo move dependencies into individual loadable files, so we can actually check if there is a dependency loader for a model already in existance.
 			$output->writeln("Dependencies updated (Remember if you regenerate this model by force - you must fix dependencies.php as well!");
+
+			$output->writeln("Updating phpstorm meta (Same rule as above applies.. BE VIGILANT");
+			// Update phpstorm meta..
+			$storm = file_get_contents(__DIR__ . "/../../.phpstorm.meta.php");
+			$storm = substr($storm, 0, -13) . ",\n\t\t\t\"{$table}\" instanceof {$qualifiedName}" . substr($storm, -13);
+			file_put_contents(__DIR__ . "/../../.phpstorm.meta.php", ucfirst($storm));
+
 		}
 	}
 }

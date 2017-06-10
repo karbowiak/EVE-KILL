@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Middleware\Controller;
+use App\Model\CCP\invTypes;
 use Slim\Http\Response;
 
 /**
