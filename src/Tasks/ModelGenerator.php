@@ -78,8 +78,9 @@ class ModelGenerator extends Command {
 			$tableColumns = $this->db->query("SHOW COLUMNS FROM {$table}");
 
 			$class = new PhpClass();
+			$qualifiedName = !empty($sub) ? "App\\Model\\" . ucfirst($sub) . "\\{$table}" : "App\\Model\\{$table}";
 			$class
-				->setQualifiedName("App\\Model\\{$table}")
+				->setQualifiedName($qualifiedName)
 				->setProperty(
 					PhpProperty::create("container")
 					->setVisibility("protected")
@@ -156,7 +157,7 @@ class ModelGenerator extends Command {
 				}
 			}
 
-			if($input->hasOption("updaters")) {
+			if($input->getOption("updaters") === NULL) {
 				$output->writeln("Updaters being generated..");
 				foreach ($nameFields as $name) {
 					foreach ($tableColumns as $get) {
@@ -204,7 +205,7 @@ if(!empty(\$exists)) {
 				}
 			}
 
-			if($input->hasOption("inserter")) {
+			if($input->getOption("inserter") === NULL) {
 				$output->writeln("Inserter being generated..");
 				$class->setMethod(PhpMethod::create("insertInto" . ucfirst($table)));
 				$fields = array();
