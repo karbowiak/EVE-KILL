@@ -149,8 +149,10 @@ class Database {
 	 *
 	 * @return int|null
 	 */
-	public function execute(string $query, array $parameters = array(), bool $returnID = false): ?int {
-		$this->db->beginTransaction();
+	public function execute(string $query, array $parameters = array(), bool $returnID = false, bool $transactions = true): ?int {
+		if($transactions == true)
+			$this->db->beginTransaction();
+
 		$stmt = $this->db->prepare($query);
 		$stmt->execute($parameters);
 
@@ -160,7 +162,9 @@ class Database {
 		}
 
 		$rID = $returnID ? $this->db->lastInsertId() : 0;
-		$this->db->commit();
+		if($transactions == true)
+			$this->db->commit();
+
 		$rowCount = $stmt->rowCount();
 		$stmt->closeCursor();
 
@@ -183,6 +187,6 @@ class Database {
 			$query .= "|{$key}|{$value}";
 		}
 
-		return "Db:" . sha1($query);
+		return "Db" . sha1($query);
 	}
 }
