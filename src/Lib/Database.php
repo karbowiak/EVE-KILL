@@ -78,7 +78,7 @@ class Database {
 		// Check the cache
 		if($cacheTime > 0) {
 			if($this->cache->hasItem($key))
-				return $this->cache->getItem($key)->get();
+				return new Collection($this->cache->getItem($key)->get());
 		}
 
 		try {
@@ -172,7 +172,6 @@ class Database {
 		if($returnID)
 			return $rID;
 		return $rowCount;
-
 	}
 
 	/**
