@@ -3,6 +3,7 @@ namespace App\Lib;
 
 
 use App\Helper\Timer;
+use Illuminate\Support\Collection;
 use Monolog\Logger;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 
@@ -66,7 +67,7 @@ class Database {
 	 * @return array|null
 	 * @throws \Exception
 	 */
-	public function query(string $query, array $parameters = array(), int $cacheTime = 30): ?array {
+	public function query(string $query, array $parameters = array(), int $cacheTime = 30): Collection {
 		// Sanity check
 		if(strpos($query, ";") !== false)
 			throw new \Exception("Semicolons are not allowed in regular queries. Use parameters instead");
@@ -88,7 +89,7 @@ class Database {
 			if($stmt->errorCode() != 0)
 				return null;
 
-			$result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+			$result = new Collection($stmt->fetchAll(\PDO::FETCH_ASSOC));
 			$stmt->closeCursor();
 
 			if($timer->stop() > $this->timeout)
@@ -115,14 +116,14 @@ class Database {
 	 * @return array|null
 	 * @throws \Exception
 	 */
-	public function queryRow(string $query, array $parameters = array(), int $cacheTime = 30): ?array {
+	public function queryRow(string $query, array $parameters = array(), int $cacheTime = 30): Collection {
 		$result = $this->query($query, $parameters, $cacheTime);
 
-		if(count($result) >= 1) {
+		if($result->count() >= 1) {
 			return $result[0];
 		}
 
-		return array();
+		return new Collection();
 	}
 
 	/**
@@ -136,8 +137,8 @@ class Database {
 	 */
 	public function queryField(string $query, string $field, array $parameters = array(), int $cacheTime = 30): ?string {
 		$result = $this->query($query, $parameters, $cacheTime);
-		if(count($result) == 0)
-			return null;
+		if($result->count() == 0)
+			return "";
 
 		return $result[0][$field];
 	}
