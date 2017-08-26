@@ -91,11 +91,14 @@ class UpdateCCPData extends Command {
 			$type = ".sql.bz2";
 
 			foreach($dbFiles as $file) {
-				$output->writeln("<info>Updating</info> {$file}");
 				$innerURL = "{$dataURL}latest/{$file}{$type}";
+				$output->writeln("<info>Updating</info> {$file} (<error>{$innerURL}</error>)");
 
 				try {
-					file_put_contents("{$fileCacheDir}/{$file}{$type}", $this->curl->getData($innerURL, 0));
+					$this->curl->getDataStreamed($innerURL, "{$fileCacheDir}/{$file}{$type}");
+					if(!file_exists("{$fileCacheDir}/{$file}{$type}"))
+						throw new \Exception("Error, file does not exist..");
+
 					$sqlData = bzopen("{$fileCacheDir}/{$file}{$type}", "r");
 
 					$data = "";
@@ -119,6 +122,15 @@ class UpdateCCPData extends Command {
 			}
 
 			$this->storage->insertData("ccpDataMd5", $md5);
+
+			$output->writeln("Setting up mapAllCelestials view");
+			$this->db->execute("CREATE OR REPLACE VIEW mapAllCelestials AS
+			(SELECT itemID, itemName, typeName, mapDenormalize.typeID, solarSystemName, mapDenormalize.solarSystemID, mapDenormalize.constellationID, mapDenormalize.regionID, mapRegions.regionName, orbitID, mapDenormalize.x, mapDenormalize.y, mapDenormalize.z
+			FROM mapDenormalize
+			JOIN invTypes ON (mapDenormalize.typeID = invTypes.typeID)
+			JOIN mapSolarSystems ON (mapSolarSystems.solarSystemID = mapDenormalize.solarSystemID)
+			JOIN mapRegions ON (mapDenormalize.regionID = mapRegions.regionID)
+			JOIN mapConstellations ON (mapDenormalize.constellationID = mapConstellations.constellationID))");
 		}
 	}
 }
